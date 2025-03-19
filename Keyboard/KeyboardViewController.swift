@@ -361,6 +361,8 @@ final class KeyboardViewController: UIInputViewController, ObservableObject {
                                         adjustKeyboard()
                                 }
                         } else {
+                                // TODO: Double-space shortcut
+                                /*
                                 let hasSpaceAhead: Bool = textDocumentProxy.documentContextBeforeInput?.hasSuffix(String.space) ?? false
                                 if hasSpaceAhead {
                                         textDocumentProxy.deleteBackward()
@@ -369,6 +371,8 @@ final class KeyboardViewController: UIInputViewController, ObservableObject {
                                 } else {
                                         textDocumentProxy.insertText(String.space)
                                 }
+                                */
+                                textDocumentProxy.insertText(String.space)
                                 adjustKeyboard()
                         }
                 case .backspace:
@@ -632,16 +636,16 @@ final class KeyboardViewController: UIInputViewController, ObservableObject {
                         return leadingText + String.space + tailText
                 }()
                 text2mark = "r " + tailText2Mark
-                candidates = suggestions.map({ $0.transformed(to: Options.characterStandard) }).uniqued()
+                candidates = suggestions.transformed(to: Options.characterStandard).uniqued()
         }
         private func cangjieReverseLookup() {
                 let text: String = String(bufferText.dropFirst())
-                let converted = text.compactMap({ Logogram.cangjie(of: $0) })
+                let converted = text.compactMap({ CharacterStandard.cangjie(of: $0) })
                 let isValidSequence: Bool = converted.isNotEmpty && (converted.count == text.count)
                 if isValidSequence {
                         text2mark = String(converted)
                         let lookup: [Candidate] = Engine.cangjieReverseLookup(text: text, variant: Options.cangjieVariant)
-                        candidates = lookup.map({ $0.transformed(to: Options.characterStandard) }).uniqued()
+                        candidates = lookup.transformed(to: Options.characterStandard).uniqued()
                 } else {
                         text2mark = bufferText
                         candidates = []
@@ -649,13 +653,13 @@ final class KeyboardViewController: UIInputViewController, ObservableObject {
         }
         private func strokeReverseLookup() {
                 let text: String = String(bufferText.dropFirst())
-                let transformed: String = Logogram.strokeTransform(text)
-                let converted = transformed.compactMap({ Logogram.stroke(of: $0) })
+                let transformed: String = CharacterStandard.strokeTransform(text)
+                let converted = transformed.compactMap({ CharacterStandard.stroke(of: $0) })
                 let isValidSequence: Bool = converted.isNotEmpty && (converted.count == text.count)
                 if isValidSequence {
                         text2mark = String(converted)
                         let lookup: [Candidate] = Engine.strokeReverseLookup(text: transformed)
-                        candidates = lookup.map({ $0.transformed(to: Options.characterStandard) }).uniqued()
+                        candidates = lookup.transformed(to: Options.characterStandard).uniqued()
                 } else {
                         text2mark = bufferText
                         candidates = []
@@ -683,7 +687,7 @@ final class KeyboardViewController: UIInputViewController, ObservableObject {
                 }()
                 text2mark = "q " + tailMarkedText
                 let lookup: [Candidate] = Engine.structureReverseLookup(text: text, input: bufferText, segmentation: segmentation)
-                candidates = lookup.map({ $0.transformed(to: Options.characterStandard) }).uniqued()
+                candidates = lookup.transformed(to: Options.characterStandard).uniqued()
         }
 
         /// Cached Candidate sequence for InputMemory
@@ -901,6 +905,14 @@ final class KeyboardViewController: UIInputViewController, ObservableObject {
                 keyboardLayout = layout
                 let value: Int = layout.rawValue
                 UserDefaults.standard.set(value, forKey: OptionsKey.KeyboardLayout)
+        }
+
+        /// Numeric keyboard for the Qwerty KeyboardLayout
+        @Published private(set) var numericLayout: NumericLayout = NumericLayout.fetchSavedLayout()
+        func updateNumericLayout(to layout: NumericLayout) {
+                numericLayout = layout
+                let value: Int = layout.rawValue
+                UserDefaults.standard.set(value, forKey: OptionsKey.NumericLayout)
         }
 
 

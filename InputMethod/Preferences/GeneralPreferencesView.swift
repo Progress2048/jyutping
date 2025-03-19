@@ -13,6 +13,8 @@ struct GeneralPreferencesView: View {
         @State private var commentDisplayStyle: CommentDisplayStyle = AppSettings.commentDisplayStyle
         @State private var toneDisplayStyle: ToneDisplayStyle = AppSettings.toneDisplayStyle
         @State private var toneDisplayColor: ToneDisplayColor = AppSettings.toneDisplayColor
+        @State private var labelSet: LabelSet = AppSettings.labelSet
+        @State private var isLabelLastZero: Bool = AppSettings.isLabelLastZero
 
         @State private var characterStandard: CharacterStandard = Options.characterStandard
         @State private var isEmojiSuggestionsOn: Bool = Options.isEmojiSuggestionsOn
@@ -65,21 +67,20 @@ struct GeneralPreferencesView: View {
                                         Spacer()
                                 }
                                 .block()
-                                HStack {
-                                        Picker("GeneralPreferencesView.CommentStyle", selection: $commentDisplayStyle) {
-                                                Text("GeneralPreferencesView.CommentStyle.Top").tag(CommentDisplayStyle.top)
-                                                Text("GeneralPreferencesView.CommentStyle.Bottom").tag(CommentDisplayStyle.bottom)
-                                                Text("GeneralPreferencesView.CommentStyle.Right").tag(CommentDisplayStyle.right)
-                                                Text("GeneralPreferencesView.CommentStyle.NoComments").tag(CommentDisplayStyle.noComments)
-                                        }
-                                        .scaledToFit()
-                                        .onChange(of: commentDisplayStyle) { newStyle in
-                                                AppSettings.updateCommentDisplayStyle(to: newStyle)
-                                        }
-                                        Spacer()
-                                }
-                                .block()
                                 VStack {
+                                        HStack {
+                                                Picker("GeneralPreferencesView.CommentStyle", selection: $commentDisplayStyle) {
+                                                        Text("GeneralPreferencesView.CommentStyle.Top").tag(CommentDisplayStyle.top)
+                                                        Text("GeneralPreferencesView.CommentStyle.Bottom").tag(CommentDisplayStyle.bottom)
+                                                        Text("GeneralPreferencesView.CommentStyle.Right").tag(CommentDisplayStyle.right)
+                                                        Text("GeneralPreferencesView.CommentStyle.NoComments").tag(CommentDisplayStyle.noComments)
+                                                }
+                                                .scaledToFit()
+                                                .onChange(of: commentDisplayStyle) { newStyle in
+                                                        AppSettings.updateCommentDisplayStyle(to: newStyle)
+                                                }
+                                                Spacer()
+                                        }
                                         HStack {
                                                 Picker("GeneralPreferencesView.CommentToneStyle", selection: $toneDisplayStyle) {
                                                         Text("GeneralPreferencesView.CommentToneStyle.Normal").tag(ToneDisplayStyle.normal)
@@ -102,6 +103,37 @@ struct GeneralPreferencesView: View {
                                                 .onChange(of: toneDisplayColor) { newOption in
                                                         AppSettings.updateToneDisplayColor(to: newOption)
                                                 }
+                                                Spacer()
+                                        }
+                                }
+                                .block()
+                                VStack {
+                                        HStack {
+                                                Picker("GeneralPreferencesView.LabelSet", selection: $labelSet) {
+                                                        Text("GeneralPreferencesView.LabelSet.Arabic").tag(LabelSet.arabic)
+                                                        Text("GeneralPreferencesView.LabelSet.FullWidthArabic").tag(LabelSet.fullWidthArabic)
+                                                        Text("GeneralPreferencesView.LabelSet.Chinese").tag(LabelSet.chinese)
+                                                        Text("GeneralPreferencesView.LabelSet.CapitalizedChinese").tag(LabelSet.capitalizedChinese)
+                                                        Text("GeneralPreferencesView.LabelSet.VerticalCountingRods").tag(LabelSet.verticalCountingRods)
+                                                        Text("GeneralPreferencesView.LabelSet.HorizontalCountingRods").tag(LabelSet.horizontalCountingRods)
+                                                        Text("GeneralPreferencesView.LabelSet.Soochow").tag(LabelSet.soochow)
+                                                        Text("GeneralPreferencesView.LabelSet.Mahjong").tag(LabelSet.mahjong)
+                                                        Text("GeneralPreferencesView.LabelSet.Roman").tag(LabelSet.roman)
+                                                        Text("GeneralPreferencesView.LabelSet.SmallRoman").tag(LabelSet.smallRoman)
+                                                }
+                                                .scaledToFit()
+                                                .onChange(of: labelSet) { newOption in
+                                                        AppSettings.updateLabelSet(to: newOption)
+                                                }
+                                                Spacer()
+                                        }
+                                        HStack {
+                                                Toggle("GeneralPreferencesView.Toggle.LabelLastZero", isOn: $isLabelLastZero)
+                                                        .toggleStyle(.switch)
+                                                        .scaledToFit()
+                                                        .onChange(of: isLabelLastZero) { newState in
+                                                                AppSettings.updateLabelLastState(to: newState)
+                                                        }
                                                 Spacer()
                                         }
                                 }
@@ -142,7 +174,7 @@ struct GeneralPreferencesView: View {
                                                 Spacer()
                                         }
                                         .font(.subheadline)
-                                        .padding(.horizontal, 12)
+                                        .padding(.horizontal, 8)
                                 }
                                 HStack {
                                         Toggle("GeneralPreferencesView.EmojiSuggestions", isOn: $isEmojiSuggestionsOn)
@@ -154,41 +186,38 @@ struct GeneralPreferencesView: View {
                                         Spacer()
                                 }
                                 .block()
-                                VStack(spacing: 20) {
+                                VStack(alignment: .leading, spacing: 2) {
                                         HStack {
                                                 Toggle("GeneralPreferencesView.Toggle.InputMemory", isOn: $isInputMemoryOn)
                                                         .toggleStyle(.switch)
                                                         .scaledToFit()
                                                         .onChange(of: isInputMemoryOn) { newState in
-                                                                AppSettings.updateInputMemory(to: newState)
+                                                                AppSettings.updateInputMemoryState(to: newState)
                                                         }
                                                 Spacer()
                                         }
-                                        HStack {
-                                                VStack(alignment: .leading, spacing: 1) {
-                                                        Button(role: .destructive) {
-                                                                isClearInputMemoryConfirmDialogPresented = true
-                                                        } label: {
-                                                                Text("GeneralPreferencesView.Button.ClearInputMemory")
-                                                        }
-                                                        .buttonStyle(.plain)
-                                                        .padding(.horizontal, 8)
-                                                        .padding(.vertical, 4)
-                                                        .foregroundStyle(Color.red)
-                                                        .background(Material.thick, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
-                                                        .confirmationDialog("GeneralPreferencesView.ConfirmationDialog.ClearInputMemory.Title", isPresented: $isClearInputMemoryConfirmDialogPresented) {
-                                                                Button("GeneralPreferencesView.ConfirmationDialog.ClearInputMemory.Confirm", role: .destructive) {
-                                                                        clearInputMemoryProgress = 0
-                                                                        isPerformingClearInputMemory = true
-                                                                        UserLexicon.deleteAll()
-                                                                }
-                                                                Button("GeneralPreferencesView.ConfirmationDialog.ClearInputMemory.Cancel", role: .cancel) {
-                                                                        isClearInputMemoryConfirmDialogPresented = false
-                                                                }
-                                                        }
-                                                        ProgressView(value: clearInputMemoryProgress).opacity(isPerformingClearInputMemory ? 1 : 0)
+                                        VStack(alignment: .leading, spacing: 2) {
+                                                ProgressView(value: clearInputMemoryProgress).opacity(isPerformingClearInputMemory ? 1 : 0)
+                                                Button(role: .destructive) {
+                                                        isClearInputMemoryConfirmDialogPresented = true
+                                                } label: {
+                                                        Text("GeneralPreferencesView.Button.ClearInputMemory")
                                                 }
-                                                .fixedSize()
+                                                .buttonStyle(.plain)
+                                                .padding(.horizontal, 8)
+                                                .padding(.vertical, 4)
+                                                .foregroundStyle(Color.red)
+                                                .background(Material.thick, in: RoundedRectangle(cornerRadius: 6, style: .continuous))
+                                                .confirmationDialog("GeneralPreferencesView.ConfirmationDialog.ClearInputMemory.Title", isPresented: $isClearInputMemoryConfirmDialogPresented) {
+                                                        Button("GeneralPreferencesView.ConfirmationDialog.ClearInputMemory.Confirm", role: .destructive) {
+                                                                clearInputMemoryProgress = 0
+                                                                isPerformingClearInputMemory = true
+                                                                UserLexicon.deleteAll()
+                                                        }
+                                                        Button("GeneralPreferencesView.ConfirmationDialog.ClearInputMemory.Cancel", role: .cancel) {
+                                                                isClearInputMemoryConfirmDialogPresented = false
+                                                        }
+                                                }
                                                 .onReceive(timer) { _ in
                                                         guard isPerformingClearInputMemory else { return }
                                                         if clearInputMemoryProgress > 1 {
@@ -197,13 +226,10 @@ struct GeneralPreferencesView: View {
                                                                 clearInputMemoryProgress += 0.1
                                                         }
                                                 }
-                                                Spacer()
                                         }
+                                        .fixedSize()
                                 }
-                                .padding(.horizontal, 12)
-                                .padding(.top, 12)
-                                .padding(.bottom, 1)
-                                .background(Color.textBackgroundColor, in: RoundedRectangle(cornerRadius: 8, style: .continuous))
+                                .block()
                         }
                         .textSelection(.enabled)
                         .padding()
